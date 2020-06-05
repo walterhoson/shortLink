@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <jmxConfigurator/>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <property scope="context" name="appName" value="slk"/>
+
+    <property name="LOG_LIMIT_SIZE" value="${LOG_LIMIT:-30GB}"/>
+    <property name="LOG_FILE" value="/app/logs/${appName}/${appName}.log"/>
+    <property name="HISTORY_LOG_FILE" value="/app/logs/${appName}/%d{yyyy-MM-dd}/${appName}-%i.log"/>
+    <property name="ERROR_LOG_FILE" value="/app/logs/${appName}/error/${appName}_error.log"/>
+    <property name="ERROR_HISTORY_LOG_FILE" value="/app/logs/${appName}/%d{yyyy-MM-dd}/error/${appName}_error-%i.log"/>
+    <property name="FILE_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} ${appName} [%thread] %-5level %logger{50}.%method:%L - %msg%n"/>
+
+
+    <!-- Info日志文件：限制总日志大小 LOG_LIMIT_SIZE（默认30GB），单日志大小50MB，限制日志最多保留30天 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--日志文件保留天数-->
+        <file>${LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件轮转的文件名-->
+            <FileNamePattern>${HISTORY_LOG_FILE}</FileNamePattern>
+            <!--日志文件保留天数-->
+            <MaxHistory>30</MaxHistory>
+            <!--日志文件最大占用磁盘空间大小-->
+            <totalSizeCap>${LOG_LIMIT_SIZE}</totalSizeCap>
+            <!--日志文件最大的大小-->
+            <TimeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>50MB</maxFileSize>
+            </TimeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Error日志文件：限制总日志大小 ErrorLogLimit（默认3GB），单日志大小50MB，限制日志最多保留30天 -->
+    <appender name="ErrorFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--日志文件保留天数-->
+        <file>${ERROR_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件轮转的文件名-->
+            <FileNamePattern>${ERROR_HISTORY_LOG_FILE}</FileNamePattern>
+            <!--日志文件保留天数-->
+            <MaxHistory>30</MaxHistory>
+            <!--日志文件最大占用磁盘空间大小-->
+            <totalSizeCap>${LOG_LIMIT_SIZE}</totalSizeCap>
+            <!--日志文件最大的大小-->
+            <TimeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>50MB</maxFileSize>
+            </TimeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <springProfile name="dev">
+        <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+    <root level="INFO">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="ErrorFILE"/>
+    </root>
+</configuration>
